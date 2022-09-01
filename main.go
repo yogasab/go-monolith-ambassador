@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/yogasab/go-monolith-ambassador/src/database"
+	"github.com/yogasab/go-monolith-ambassador/src/routes"
 )
 
 func main() {
@@ -10,8 +11,11 @@ func main() {
 	database.AutoMigrate()
 
 	app := fiber.New()
+	routes.Setup(app)
+
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, World!")
 	})
-	app.Listen(":3000")
+
+	app.Listen(":5000")
 }
