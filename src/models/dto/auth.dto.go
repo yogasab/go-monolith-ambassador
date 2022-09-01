@@ -7,3 +7,8 @@ type RegisterDTO struct {
 	Email        string `json:"email" validate:"required,email"`
 	IsAmbassador bool   `json:"is_ambassador" validate:"required"`
 }
+
+type LoginDTO struct {
+	Password string `json:"password" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+}

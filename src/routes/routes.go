@@ -11,8 +11,10 @@ import (
 func Setup(app *fiber.App) {
 	api := app.Group("/api")
 
-	admin := api.Group("/admin")
 	authController := controllers.NewAuthController(
-		services.NewAuthService(repositories.NewUserRepository(database.DB)))
-	admin.Post("/auth/register", authController.RegisterAdmin)
+		services.NewAuthService(repositories.NewUserRepository(database.DB)), services.NewJWTService())
+
+	admin := api.Group("/admin")
+	admin.Post("/auth/register", authController.Register)
+	admin.Post("/auth/login", authController.Login)
 }

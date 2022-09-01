@@ -9,14 +9,19 @@ import (
 )
 
 type authController struct {
-	authService services.AuthService
+	authService  services.AuthService
+	tokenService services.TokenService
 }
 
-func NewAuthController(authService services.AuthService) *authController {
-	return &authController{authService: authService}
+func NewAuthController(
+	authService services.AuthService, tokenService services.TokenService) *authController {
+	return &authController{
+		authService:  authService,
+		tokenService: tokenService,
+	}
 }
 
-func (h *authController) RegisterAdmin(ctx *fiber.Ctx) error {
+func (h *authController) Register(ctx *fiber.Ctx) error {
 	dto := new(dto.RegisterDTO)
 	if err := ctx.BodyParser(dto); err != nil {
 		return ctx.
@@ -39,7 +44,7 @@ func (h *authController) RegisterAdmin(ctx *fiber.Ctx) error {
 
 	}
 
-	newUser, err := h.authService.RegisterAdmin(dto)
+	newUser, err := h.authService.Register(dto)
 	if err != nil {
 		return ctx.
 			Status(http.StatusInternalServerError).
@@ -56,5 +61,58 @@ func (h *authController) RegisterAdmin(ctx *fiber.Ctx) error {
 			"code":    http.StatusCreated,
 			"message": "user registered successfully",
 			"data":    newUser,
+		})
+}
+
+func (h *authController) Login(ctx *fiber.Ctx) error {
+	dto := new(dto.LoginDTO)
+	if err := ctx.BodyParser(dto); err != nil {
+		return ctx.
+			Status(http.StatusUnprocessableEntity).
+			JSON(fiber.Map{
+				"code":    http.StatusUnprocessableEntity,
+				"message": "failed to process request",
+				"error":   err,
+			})
+	}
+
+	if errors := ValidateInput(*dto); errors != nil {
+		return ctx.
+			Status(http.StatusUnprocessableEntity).
+			JSON(fiber.Map{
+				"code":    http.StatusUnprocessableEntity,
+				"message": "error validation request",
+				"error":   errors,
+			})
+	}
+
+	registeredUser, err := h.authService.Login(dto)
+	if err != nil {
+		return ctx.
+			Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server error",
+				"error":   err.Error(),
+			})
+	}
+
+	token, err := h.tokenService.GenerateToken(registeredUser.ID)
+	if err != nil {
+		return ctx.
+			Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server error",
+				"error":   err.Error(),
+			})
+	}
+
+	return ctx.
+		Status(http.StatusOK).
+		JSON(fiber.Map{
+			"code":    http.StatusOK,
+			"message": "user logged in successfully",
+			"data":    token,
 		})
 }
