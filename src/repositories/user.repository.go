@@ -11,6 +11,7 @@ type UserRepository interface {
 	Create(user *models.User) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
 	FindByID(ID int) (*models.User, error)
+	FindAll() ([]*models.User, error)
 }
 
 type userRepository struct {
@@ -48,4 +49,12 @@ func (r *userRepository) FindByID(ID int) (*models.User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (r *userRepository) FindAll() ([]*models.User, error) {
+	var users []*models.User
+	if err := r.DB.Where("is_ambassador = 1").Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
 }
