@@ -10,6 +10,7 @@ import (
 type UserRepository interface {
 	Create(user *models.User) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
+	FindByID(ID int) (*models.User, error)
 }
 
 type userRepository struct {
@@ -37,6 +38,14 @@ func (r *userRepository) FindByEmail(email string) (*models.User, error) {
 	}
 	if user.ID == 0 {
 		return nil, errors.New("user is not registered")
+	}
+	return user, nil
+}
+
+func (r *userRepository) FindByID(ID int) (*models.User, error) {
+	var user *models.User
+	if err := r.DB.Where("id = ?", ID).First(&user).Error; err != nil {
+		return nil, err
 	}
 	return user, nil
 }

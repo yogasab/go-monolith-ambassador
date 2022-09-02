@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -142,12 +143,21 @@ func (h *authController) Profile(ctx *fiber.Ctx) error {
 	}
 
 	payload := token.Claims.(*jwt.StandardClaims)
+	ID, _ := strconv.Atoi(payload.Subject)
+	user, err := h.authService.GetProfile(ID)
+	if err != nil {
+		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"code":    http.StatusUnauthorized,
+			"message": "invalid access token",
+			"data":    nil,
+		})
+	}
 
 	return ctx.
 		Status(http.StatusOK).
 		JSON(fiber.Map{
 			"code":    http.StatusOK,
 			"message": "profile fetched successfully",
-			"data":    payload,
+			"data":    user,
 		})
 }

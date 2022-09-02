@@ -11,6 +11,7 @@ import (
 type AuthService interface {
 	Register(dto *dto.RegisterDTO) (*models.User, error)
 	Login(dto *dto.LoginDTO) (*models.User, error)
+	GetProfile(ID int) (*models.User, error)
 }
 
 type authService struct {
@@ -45,4 +46,12 @@ func (s *authService) Login(dto *dto.LoginDTO) (*models.User, error) {
 		return nil, errors.New("invalid credentials")
 	}
 	return registeredUser, nil
+}
+
+func (s *authService) GetProfile(ID int) (*models.User, error) {
+	user, err := s.userRepository.FindByID(ID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
