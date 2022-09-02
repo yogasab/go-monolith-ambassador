@@ -14,12 +14,14 @@ func Setup(app *fiber.App) {
 
 	authController := controllers.NewAuthController(
 		services.NewAuthService(repositories.NewUserRepository(database.DB)), services.NewJWTService())
+	ambassadorController := controllers.NewAmbassadorController(services.NewAmbassadorService(repositories.NewUserRepository(database.DB)))
 
 	admin := api.Group("/admin")
-	admin.Post("/auth/register", authController.Register)
-	admin.Post("/auth/login", authController.Login)
+	admin.Post("auth/register", authController.Register)
+	admin.Post("auth/login", authController.Login)
 
 	authenticatedAdmin := admin.Use(middlewares.IsAuthenticated)
-	authenticatedAdmin.Get("/auth/profile", authController.Profile)
-	authenticatedAdmin.Post("/auth/logout", authController.Logout)
+	authenticatedAdmin.Get("profile", authController.Profile)
+	authenticatedAdmin.Post("logout", authController.Logout)
+	authenticatedAdmin.Get("ambassadors", ambassadorController.GetAmbassadors)
 }
