@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"github.com/yogasab/go-monolith-ambassador/src/models/dto"
 	"github.com/yogasab/go-monolith-ambassador/src/services"
@@ -108,11 +110,44 @@ func (h *authController) Login(ctx *fiber.Ctx) error {
 			})
 	}
 
+	loggedUser := fiber.Cookie{
+		Name:     "jwt",
+		Value:    token,
+		HTTPOnly: true,
+		Expires:  time.Now().Add(time.Hour * 24),
+	}
+	ctx.Cookie(&loggedUser)
+
 	return ctx.
 		Status(http.StatusOK).
 		JSON(fiber.Map{
 			"code":    http.StatusOK,
 			"message": "user logged in successfully",
 			"data":    token,
+		})
+}
+
+func (h *authController) Profile(ctx *fiber.Ctx) error {
+	cookie := ctx.Cookies("jwt")
+	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(t *jwt.Token) (interface{}, error) {
+		return []byte("123"), nil
+	})
+
+	if !token.Valid || err != nil {
+		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{
+			"code":    http.StatusUnauthorized,
+			"message": "invalid access token",
+			"data":    nil,
+		})
+	}
+
+	payload := token.Claims.(*jwt.StandardClaims)
+
+	return ctx.
+		Status(http.StatusOK).
+		JSON(fiber.Map{
+			"code":    http.StatusOK,
+			"message": "profile fetched successfully",
+			"data":    payload,
 		})
 }

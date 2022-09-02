@@ -17,4 +17,5 @@ func Setup(app *fiber.App) {
 	admin := api.Group("/admin")
 	admin.Post("/auth/register", authController.Register)
 	admin.Post("/auth/login", authController.Login)
+	admin.Get("/auth/profile", authController.Profile)
 }

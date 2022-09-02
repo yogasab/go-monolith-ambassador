@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/yogasab/go-monolith-ambassador/src/database"
 	"github.com/yogasab/go-monolith-ambassador/src/routes"
 )
@@ -11,11 +12,12 @@ func main() {
 	database.AutoMigrate()
 
 	app := fiber.New()
-	routes.Setup(app)
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World!")
-	})
+	app.Use(cors.New(cors.Config{
+		AllowCredentials: true,
+	}))
+
+	routes.Setup(app)
 
 	app.Listen(":5000")
 }

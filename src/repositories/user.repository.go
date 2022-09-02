@@ -22,6 +22,9 @@ func NewUserRepository(DB *gorm.DB) UserRepository {
 
 func (r *userRepository) Create(user *models.User) (*models.User, error) {
 	if err := r.DB.Create(&user).Error; err != nil {
+		// if strings.Contains(err.Error(), "1062") {
+		// 	return nil, err
+		// }
 		return nil, err
 	}
 	return user, nil
