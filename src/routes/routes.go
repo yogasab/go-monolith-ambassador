@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/yogasab/go-monolith-ambassador/src/controllers"
 	"github.com/yogasab/go-monolith-ambassador/src/database"
+	"github.com/yogasab/go-monolith-ambassador/src/middlewares"
 	"github.com/yogasab/go-monolith-ambassador/src/repositories"
 	"github.com/yogasab/go-monolith-ambassador/src/services"
 )
@@ -17,5 +18,8 @@ func Setup(app *fiber.App) {
 	admin := api.Group("/admin")
 	admin.Post("/auth/register", authController.Register)
 	admin.Post("/auth/login", authController.Login)
-	admin.Get("/auth/profile", authController.Profile)
+
+	authenticatedAdmin := admin.Use(middlewares.IsAuthenticated)
+	authenticatedAdmin.Get("/auth/profile", authController.Profile)
+	authenticatedAdmin.Post("/auth/logout", authController.Logout)
 }
