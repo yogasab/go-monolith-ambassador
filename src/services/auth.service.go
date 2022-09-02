@@ -13,6 +13,7 @@ type AuthService interface {
 	Login(dto *dto.LoginDTO) (*models.User, error)
 	GetProfile(ID int) (*models.User, error)
 	UpdateProfile(dto *dto.UpdateProfileDTO) (*models.User, error)
+	UpdateProfilePassword(dto *dto.UpdateProfilePassword) (bool, error)
 }
 
 type authService struct {
@@ -75,4 +76,20 @@ func (s *authService) UpdateProfile(dto *dto.UpdateProfileDTO) (*models.User, er
 		return nil, err
 	}
 	return updatedUser, nil
+}
+
+func (s *authService) UpdateProfilePassword(dto *dto.UpdateProfilePassword) (bool, error) {
+	user, err := s.userRepository.FindByID(dto.ID)
+	if err != nil {
+		return false, err
+	}
+	if user.ComparePassword(user.Password, dto.Password) {
+		return false, errors.New("password must be unique from the previous")
+	}
+	hashedPassword := user.HashPassword(dto.Password)
+	isUpdated, err := s.userRepository.UpdatePassword(dto.ID, hashedPassword)
+	if err != nil {
+		return false, err
+	}
+	return isUpdated, nil
 }

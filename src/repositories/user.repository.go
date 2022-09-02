@@ -13,6 +13,7 @@ type UserRepository interface {
 	FindByID(ID int) (*models.User, error)
 	FindAll() ([]*models.User, error)
 	Update(ID int, user *models.User) (*models.User, error)
+	UpdatePassword(ID int, password string) (bool, error)
 }
 
 type userRepository struct {
@@ -65,4 +66,12 @@ func (r *userRepository) Update(ID int, user *models.User) (*models.User, error)
 		return nil, err
 	}
 	return user, nil
+}
+
+func (r *userRepository) UpdatePassword(ID int, password string) (bool, error) {
+	var user *models.User
+	if err := r.DB.Where("id = ?", ID).First(&user).Update("password", password).Error; err != nil {
+		return false, err
+	}
+	return true, nil
 }

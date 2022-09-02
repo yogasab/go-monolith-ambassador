@@ -19,3 +19,8 @@ type UpdateProfileDTO struct {
 	LastName  string `json:"last_name" validate:"required"`
 	Email     string `json:"email" validate:"required,email"`
 }
+
+type UpdateProfilePassword struct {
+	ID       int
+	Password string `json:"password" validate:"required,min=8"`
+}
