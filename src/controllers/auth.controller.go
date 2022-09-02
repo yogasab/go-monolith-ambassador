@@ -162,3 +162,47 @@ func (h *authController) Logout(ctx *fiber.Ctx) error {
 			"data":    nil,
 		})
 }
+
+func (h *authController) UpdateProfile(ctx *fiber.Ctx) error {
+	dto := new(dto.UpdateProfileDTO)
+	if err := ctx.BodyParser(dto); err != nil {
+		return ctx.
+			Status(http.StatusUnprocessableEntity).
+			JSON(fiber.Map{
+				"code":    http.StatusUnprocessableEntity,
+				"message": "failed to process request",
+				"error":   err,
+			})
+	}
+
+	if errors := ValidateInput(*dto); errors != nil {
+		return ctx.
+			Status(http.StatusUnprocessableEntity).
+			JSON(fiber.Map{
+				"code":    http.StatusUnprocessableEntity,
+				"message": "error validation request",
+				"error":   errors,
+			})
+	}
+
+	ID, _ := middlewares.GetUserID(ctx)
+	dto.ID = ID
+	updatedUser, err := h.authService.UpdateProfile(dto)
+	if err != nil {
+		return ctx.
+			Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server errors",
+				"error":   err,
+			})
+	}
+
+	return ctx.
+		Status(http.StatusOK).
+		JSON(fiber.Map{
+			"code":    http.StatusOK,
+			"message": "user profile updated successfully",
+			"data":    updatedUser,
+		})
+}

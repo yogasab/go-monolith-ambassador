@@ -12,6 +12,7 @@ type UserRepository interface {
 	FindByEmail(email string) (*models.User, error)
 	FindByID(ID int) (*models.User, error)
 	FindAll() ([]*models.User, error)
+	Update(ID int, user *models.User) (*models.User, error)
 }
 
 type userRepository struct {
@@ -57,4 +58,11 @@ func (r *userRepository) FindAll() ([]*models.User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+func (r *userRepository) Update(ID int, user *models.User) (*models.User, error) {
+	if err := r.DB.Where("id = ?", ID).Save(&user).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
 }

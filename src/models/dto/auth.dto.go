@@ -12,3 +12,10 @@ type LoginDTO struct {
 	Password string `json:"password" validate:"required"`
 	Email    string `json:"email" validate:"required,email"`
 }
+
+type UpdateProfileDTO struct {
+	ID        int
+	FirstName string `json:"first_name" validate:"required"`
+	LastName  string `json:"last_name" validate:"required"`
+	Email     string `json:"email" validate:"required,email"`
+}
