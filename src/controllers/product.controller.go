@@ -101,3 +101,33 @@ func (h *productController) UpdateProduct(ctx *fiber.Ctx) error {
 			"data":    updatedProduct,
 		})
 }
+
+func (h *productController) DeleteProduct(ctx *fiber.Ctx) error {
+	ID, _ := strconv.Atoi(ctx.Params("id"))
+
+	isDeleted, err := h.productService.DeleteProduct(ID)
+	if err != nil {
+		if err.Error() == "product not found" {
+			return ctx.Status(http.StatusNotFound).
+				JSON(fiber.Map{
+					"code":    http.StatusNotFound,
+					"message": "not found",
+					"error":   err.Error(),
+				})
+		}
+		return ctx.Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server errors",
+				"error":   err.Error(),
+			})
+	}
+
+	return ctx.
+		Status(http.StatusOK).
+		JSON(fiber.Map{
+			"code":       http.StatusOK,
+			"message":    "product deleted successfully",
+			"is_deleted": isDeleted,
+		})
+}

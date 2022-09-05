@@ -11,6 +11,7 @@ type ProductRepository interface {
 	FindAll() ([]*models.Product, error)
 	FindByID(ID int) (*models.Product, error)
 	Update(ID int, product *models.Product) (*models.Product, error)
+	DeleteByID(ID int) (bool, error)
 }
 
 type productRepository struct {
@@ -46,4 +47,12 @@ func (r *productRepository) Update(ID int, product *models.Product) (*models.Pro
 		return nil, err
 	}
 	return product, nil
+}
+
+func (r *productRepository) DeleteByID(ID int) (bool, error) {
+	var product *models.Product
+	if err := r.DB.Delete(&product, ID).Error; err != nil {
+		return false, err
+	}
+	return true, nil
 }

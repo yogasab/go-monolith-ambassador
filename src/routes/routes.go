@@ -36,4 +36,5 @@ func Setup(app *fiber.App) {
 	authenticatedAdmin.Get("products", productController.GetProducts)
 	authenticatedAdmin.Get("products/:id", productController.GetProduct)
 	authenticatedAdmin.Put("products/:id", productController.UpdateProduct)
+	authenticatedAdmin.Delete("products/:id", productController.DeleteProduct)
 }

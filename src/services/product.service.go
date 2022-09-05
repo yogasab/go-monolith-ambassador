@@ -10,6 +10,7 @@ type ProductService interface {
 	GetProducts() ([]*models.Product, error)
 	GetProduct(ID int) (*models.Product, error)
 	UpdateProduct(dto *dto.UpdateProductDTO) (*models.Product, error)
+	DeleteProduct(ID int) (bool, error)
 }
 
 type productService struct {
@@ -50,4 +51,16 @@ func (s *productService) UpdateProduct(dto *dto.UpdateProductDTO) (*models.Produ
 		return nil, err
 	}
 	return updatedProduct, nil
+}
+
+func (s *productService) DeleteProduct(ID int) (bool, error) {
+	currentProduct, err := s.productRepository.FindByID(ID)
+	if err != nil {
+		return false, err
+	}
+	isDeleted, err := s.productRepository.DeleteByID(currentProduct.ID)
+	if err != nil {
+		return false, err
+	}
+	return isDeleted, nil
 }
