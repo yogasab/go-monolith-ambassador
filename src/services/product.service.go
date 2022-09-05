@@ -7,6 +7,7 @@ import (
 
 type ProductService interface {
 	GetProducts() ([]*models.Product, error)
+	GetProduct(ID int) (*models.Product, error)
 }
 
 type productService struct {
@@ -23,4 +24,12 @@ func (s *productService) GetProducts() ([]*models.Product, error) {
 		return nil, err
 	}
 	return products, nil
+}
+
+func (s *productService) GetProduct(ID int) (*models.Product, error) {
+	product, err := s.productRepository.FindByID(ID)
+	if err != nil {
+		return nil, err
+	}
+	return product, nil
 }

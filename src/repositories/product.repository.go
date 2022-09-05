@@ -1,12 +1,15 @@
 package repositories
 
 import (
+	"errors"
+
 	"github.com/yogasab/go-monolith-ambassador/src/models"
 	"gorm.io/gorm"
 )
 
 type ProductRepository interface {
 	FindAll() ([]*models.Product, error)
+	FindByID(ID int) (*models.Product, error)
 }
 
 type productRepository struct {
@@ -23,4 +26,16 @@ func (r *productRepository) FindAll() ([]*models.Product, error) {
 		return nil, err
 	}
 	return products, nil
+}
+
+func (r *productRepository) FindByID(ID int) (*models.Product, error) {
+	var product *models.Product
+
+	if err := r.DB.Where("id = ?", ID).First(&product).Error; err != nil {
+		if product.ID == 0 {
+			return nil, errors.New("product not found")
+		}
+		return nil, err
+	}
+	return product, nil
 }
