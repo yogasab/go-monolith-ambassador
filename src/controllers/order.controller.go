@@ -26,6 +26,11 @@ func (h *orderController) GetOrders(ctx *fiber.Ctx) error {
 			})
 	}
 
+	for i, order := range orders {
+		orders[i].Name = order.GetFullName()
+		orders[i].Total = order.GetTotalPrice()
+	}
+
 	return ctx.
 		Status(http.StatusOK).
 		JSON(fiber.Map{
