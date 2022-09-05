@@ -22,6 +22,9 @@ func Setup(app *fiber.App) {
 	productController := controllers.NewProductController(
 		services.NewProductsService(repositories.NewProductRepository(database.DB)),
 	)
+	linkController := controllers.NewLinkController(
+		services.NewLinkService(repositories.NewLinkRepository(database.DB)),
+	)
 
 	admin := api.Group("/admin")
 	admin.Post("auth/register", authController.Register)
@@ -32,6 +35,7 @@ func Setup(app *fiber.App) {
 	authenticatedAdmin.Post("logout", authController.Logout)
 	authenticatedAdmin.Put("profile/update", authController.UpdateProfile)
 	authenticatedAdmin.Put("profile/password", authController.UpdateProfilePassword)
+	authenticatedAdmin.Get("profile/:id/links", linkController.GetUserLinks)
 	authenticatedAdmin.Get("ambassadors", ambassadorController.GetAmbassadors)
 	authenticatedAdmin.Get("products", productController.GetProducts)
 	authenticatedAdmin.Post("products", productController.CreateProduct)
