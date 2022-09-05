@@ -35,4 +35,5 @@ func Setup(app *fiber.App) {
 	authenticatedAdmin.Get("ambassadors", ambassadorController.GetAmbassadors)
 	authenticatedAdmin.Get("products", productController.GetProducts)
 	authenticatedAdmin.Get("products/:id", productController.GetProduct)
+	authenticatedAdmin.Put("products/:id", productController.UpdateProduct)
 }

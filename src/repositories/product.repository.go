@@ -10,6 +10,7 @@ import (
 type ProductRepository interface {
 	FindAll() ([]*models.Product, error)
 	FindByID(ID int) (*models.Product, error)
+	Update(ID int, product *models.Product) (*models.Product, error)
 }
 
 type productRepository struct {
@@ -35,6 +36,13 @@ func (r *productRepository) FindByID(ID int) (*models.Product, error) {
 		if product.ID == 0 {
 			return nil, errors.New("product not found")
 		}
+		return nil, err
+	}
+	return product, nil
+}
+
+func (r *productRepository) Update(ID int, product *models.Product) (*models.Product, error) {
+	if err := r.DB.Where("id = ?", ID).Save(&product).Error; err != nil {
 		return nil, err
 	}
 	return product, nil

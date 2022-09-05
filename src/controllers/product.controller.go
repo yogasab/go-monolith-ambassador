@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/yogasab/go-monolith-ambassador/src/models/dto"
 	"github.com/yogasab/go-monolith-ambassador/src/services"
 )
 
@@ -57,4 +58,46 @@ func (h *productController) GetProduct(ctx *fiber.Ctx) error {
 		"message": "product fetched successfully",
 		"data":    product,
 	})
+}
+
+func (h *productController) UpdateProduct(ctx *fiber.Ctx) error {
+	dto := new(dto.UpdateProductDTO)
+	ID, _ := strconv.Atoi(ctx.Params("id"))
+	if err := ctx.BodyParser(dto); err != nil {
+		return ctx.
+			Status(http.StatusUnprocessableEntity).
+			JSON(fiber.Map{
+				"code":    http.StatusUnprocessableEntity,
+				"message": "failed to process request",
+				"error":   err,
+			})
+	}
+
+	if errors := ValidateInput(*dto); errors != nil {
+		return ctx.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+			"code":    http.StatusUnprocessableEntity,
+			"message": "error validation request",
+			"error":   errors,
+		})
+	}
+
+	dto.ID = ID
+
+	updatedProduct, err := h.productService.UpdateProduct(dto)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server errors",
+				"error":   err.Error(),
+			})
+	}
+
+	return ctx.
+		Status(http.StatusOK).
+		JSON(fiber.Map{
+			"code":    http.StatusOK,
+			"message": "product updated successfully",
+			"data":    updatedProduct,
+		})
 }
