@@ -34,6 +34,7 @@ func Setup(app *fiber.App) {
 	authenticatedAdmin.Put("profile/password", authController.UpdateProfilePassword)
 	authenticatedAdmin.Get("ambassadors", ambassadorController.GetAmbassadors)
 	authenticatedAdmin.Get("products", productController.GetProducts)
+	authenticatedAdmin.Post("products", productController.CreateProduct)
 	authenticatedAdmin.Get("products/:id", productController.GetProduct)
 	authenticatedAdmin.Put("products/:id", productController.UpdateProduct)
 	authenticatedAdmin.Delete("products/:id", productController.DeleteProduct)

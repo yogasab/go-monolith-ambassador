@@ -131,3 +131,42 @@ func (h *productController) DeleteProduct(ctx *fiber.Ctx) error {
 			"is_deleted": isDeleted,
 		})
 }
+
+func (h *productController) CreateProduct(ctx *fiber.Ctx) error {
+	dto := new(dto.CreateProductDTO)
+	if err := ctx.BodyParser(dto); err != nil {
+		return ctx.
+			Status(http.StatusUnprocessableEntity).
+			JSON(fiber.Map{
+				"code":    http.StatusUnprocessableEntity,
+				"message": "failed to process request",
+				"error":   err,
+			})
+	}
+
+	if errors := ValidateInput(*dto); errors != nil {
+		return ctx.Status(http.StatusUnprocessableEntity).JSON(fiber.Map{
+			"code":    http.StatusUnprocessableEntity,
+			"message": "error validation request",
+			"error":   errors,
+		})
+	}
+
+	newProduct, err := h.productService.CreateProduct(dto)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server errors",
+				"error":   err.Error(),
+			})
+	}
+
+	return ctx.
+		Status(http.StatusOK).
+		JSON(fiber.Map{
+			"code":    http.StatusOK,
+			"message": "product updated successfully",
+			"data":    newProduct,
+		})
+}

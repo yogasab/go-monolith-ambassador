@@ -11,6 +11,7 @@ type ProductService interface {
 	GetProduct(ID int) (*models.Product, error)
 	UpdateProduct(dto *dto.UpdateProductDTO) (*models.Product, error)
 	DeleteProduct(ID int) (bool, error)
+	CreateProduct(dto *dto.CreateProductDTO) (*models.Product, error)
 }
 
 type productService struct {
@@ -63,4 +64,19 @@ func (s *productService) DeleteProduct(ID int) (bool, error) {
 		return false, err
 	}
 	return isDeleted, nil
+}
+
+func (s *productService) CreateProduct(dto *dto.CreateProductDTO) (*models.Product, error) {
+	product := models.Product{}
+	product.Title = dto.Title
+	product.Description = dto.Description
+	product.Image = dto.ImageURL
+	product.Price = dto.Price
+
+	newProduct, err := s.productRepository.Create(&product)
+	if err != nil {
+		return nil, err
+	}
+
+	return newProduct, nil
 }
