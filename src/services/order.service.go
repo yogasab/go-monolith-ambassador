@@ -7,6 +7,7 @@ import (
 
 type OrderService interface {
 	GetOrders() ([]*models.Order, error)
+	GetAmbassadorsRevenue(ambassadorID int) (float64, error)
 }
 
 type orderService struct {
@@ -23,4 +24,12 @@ func (s *orderService) GetOrders() ([]*models.Order, error) {
 		return nil, err
 	}
 	return orders, nil
+}
+
+func (s *orderService) GetAmbassadorsRevenue(ambassadorID int) (float64, error) {
+	revenue, err := s.orderRepository.CalculateAmbassadorRevenue(ambassadorID)
+	if err != nil {
+		return 0, nil
+	}
+	return revenue, nil
 }

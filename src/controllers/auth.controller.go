@@ -14,13 +14,17 @@ import (
 type authController struct {
 	authService  services.AuthService
 	tokenService services.TokenService
+	orderService services.OrderService
 }
 
 func NewAuthController(
-	authService services.AuthService, tokenService services.TokenService) *authController {
+	authService services.AuthService,
+	tokenService services.TokenService,
+	orderService services.OrderService) *authController {
 	return &authController{
 		authService:  authService,
 		tokenService: tokenService,
+		orderService: orderService,
 	}
 }
 
@@ -148,6 +152,7 @@ func (h *authController) Login(ctx *fiber.Ctx) error {
 
 func (h *authController) Profile(ctx *fiber.Ctx) error {
 	ID, _ := middlewares.GetUserID(ctx)
+
 	user, err := h.authService.GetProfile(ID)
 	if err != nil {
 		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{
@@ -156,6 +161,22 @@ func (h *authController) Profile(ctx *fiber.Ctx) error {
 			"data":    nil,
 		})
 	}
+
+	revenue, err := h.orderService.GetAmbassadorsRevenue(ID)
+	if err != nil {
+		return ctx.
+			Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server error",
+				"errors":  err,
+			})
+	}
+
+	if !strings.Contains(ctx.Path(), "/api/ambassadors") {
+		user.Revenue = 0
+	}
+	user.Revenue = revenue
 
 	return ctx.
 		Status(http.StatusOK).

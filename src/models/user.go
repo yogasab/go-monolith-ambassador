@@ -3,12 +3,13 @@ package models
 import "golang.org/x/crypto/bcrypt"
 
 type User struct {
-	ID           int    `json:"id"`
-	FirstName    string `json:"first_name"`
-	LastName     string `json:"last_name"`
-	Email        string `json:"email" gorm:"unique"`
-	Password     string `json:"-"`
-	IsAmbassador bool   `json:"-"`
+	ID           int     `json:"id"`
+	FirstName    string  `json:"first_name"`
+	LastName     string  `json:"last_name"`
+	Email        string  `json:"email" gorm:"unique"`
+	Password     string  `json:"-"`
+	IsAmbassador bool    `json:"-"`
+	Revenue      float64 `json:"revenue" gorm:"-"`
 }
 
 func (u *User) HashPassword(plainPassword string) string {
@@ -22,3 +23,7 @@ func (u *User) ComparePassword(hashedPassword string, plainPassword string) bool
 	}
 	return true
 }
+
+type Admin User
+
+type Ambassador User

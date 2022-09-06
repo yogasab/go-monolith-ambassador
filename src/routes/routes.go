@@ -14,6 +14,7 @@ func Setup(app *fiber.App) {
 	authController := controllers.NewAuthController(
 		services.NewAuthService(repositories.NewUserRepository(database.DB)),
 		services.NewJWTService(),
+		services.NewOrderService(repositories.NewOrderRepository(database.DB)),
 	)
 	ambassadorController := controllers.NewAmbassadorController(
 		services.NewAmbassadorService(repositories.NewUserRepository(database.DB)),

@@ -5,7 +5,7 @@ type RegisterDTO struct {
 	LastName     string `json:"last_name" validate:"required"`
 	Password     string `json:"password" validate:"required"`
 	Email        string `json:"email" validate:"required,email"`
-	IsAmbassador bool   `json:"is_ambassador" validate:"required"`
+	IsAmbassador bool   `json:"is_ambassador"`
 }
 
 type LoginDTO struct {
