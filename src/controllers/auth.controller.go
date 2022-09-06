@@ -69,6 +69,12 @@ func (h *authController) Register(ctx *fiber.Ctx) error {
 }
 
 func (h *authController) Login(ctx *fiber.Ctx) error {
+	scope := "admin"
+	isAmbassador := strings.Contains(ctx.Path(), "/api/ambassadors")
+	if isAmbassador {
+		scope = "ambassadors"
+	}
+
 	dto := new(dto.LoginDTO)
 	if err := ctx.BodyParser(dto); err != nil {
 		return ctx.
@@ -101,7 +107,18 @@ func (h *authController) Login(ctx *fiber.Ctx) error {
 			})
 	}
 
-	token, err := h.tokenService.GenerateToken(registeredUser.ID)
+	// Prohibited if the ambassador access the admin endpoint
+	if !isAmbassador && registeredUser.IsAmbassador {
+		return ctx.
+			Status(http.StatusForbidden).
+			JSON(fiber.Map{
+				"code":    http.StatusForbidden,
+				"message": "prohibited to aceess this route",
+				"errors":  "you are prohibited to acesss this route",
+			})
+	}
+
+	token, err := h.tokenService.GenerateToken(registeredUser.ID, scope)
 	if err != nil {
 		return ctx.
 			Status(http.StatusInternalServerError).

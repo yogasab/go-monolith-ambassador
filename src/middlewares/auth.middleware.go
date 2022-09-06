@@ -3,14 +3,20 @@ package middlewares
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 )
 
+type ClaimsWithScope struct {
+	jwt.StandardClaims
+	Scope string
+}
+
 func IsAuthenticated(ctx *fiber.Ctx) error {
 	cookie := ctx.Cookies("jwt")
-	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(t *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(cookie, &ClaimsWithScope{}, func(t *jwt.Token) (interface{}, error) {
 		return []byte("123"), nil
 	})
 
@@ -19,6 +25,16 @@ func IsAuthenticated(ctx *fiber.Ctx) error {
 			"code":    http.StatusUnauthorized,
 			"message": "invalid access token",
 			"data":    nil,
+		})
+	}
+
+	payload := token.Claims.(*ClaimsWithScope)
+	isAmbassador := strings.Contains(ctx.Path(), "/api/ambassadors")
+	if (payload.Scope == "admin" && isAmbassador) || (payload.Scope == "ambassadors" && !isAmbassador) {
+		return ctx.Status(http.StatusForbidden).JSON(fiber.Map{
+			"code":    http.StatusForbidden,
+			"message": "prohibited to aceess this route",
+			"errors":  "you are prohibited to acesss this route",
 		})
 	}
 
