@@ -10,7 +10,6 @@ import (
 )
 
 func Setup(app *fiber.App) {
-	api := app.Group("/api")
 
 	authController := controllers.NewAuthController(
 		services.NewAuthService(repositories.NewUserRepository(database.DB)),
@@ -29,6 +28,8 @@ func Setup(app *fiber.App) {
 		services.NewOrderService(repositories.NewOrderRepository(database.DB)),
 	)
 
+	api := app.Group("/api")
+
 	admin := api.Group("/admin")
 	admin.Post("auth/register", authController.Register)
 	admin.Post("auth/login", authController.Login)
@@ -46,4 +47,14 @@ func Setup(app *fiber.App) {
 	authenticatedAdmin.Get("products/:id", productController.GetProduct)
 	authenticatedAdmin.Put("products/:id", productController.UpdateProduct)
 	authenticatedAdmin.Delete("products/:id", productController.DeleteProduct)
+
+	ambassador := api.Group("/ambassadors")
+	ambassador.Post("auth/register", authController.Register)
+	ambassador.Post("auth/login", authController.Login)
+
+	authenticatedAmbassador := ambassador.Use(middlewares.IsAuthenticated)
+	authenticatedAmbassador.Get("profile", authController.Profile)
+	authenticatedAmbassador.Post("logout", authController.Logout)
+	authenticatedAmbassador.Put("profile/update", authController.UpdateProfile)
+	authenticatedAmbassador.Put("profile/password", authController.UpdateProfilePassword)
 }

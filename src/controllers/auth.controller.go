@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -35,6 +36,8 @@ func (h *authController) Register(ctx *fiber.Ctx) error {
 			})
 	}
 
+	dto.IsAmbassador = strings.Contains(ctx.Path(), "/api/ambassadors")
+
 	if errors := ValidateInput(*dto); errors != nil {
 		return ctx.
 			Status(http.StatusUnprocessableEntity).
@@ -43,7 +46,6 @@ func (h *authController) Register(ctx *fiber.Ctx) error {
 				"message": "error validation request",
 				"error":   errors,
 			})
-
 	}
 
 	newUser, err := h.authService.Register(dto)

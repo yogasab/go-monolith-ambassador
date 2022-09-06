@@ -1,8 +1,6 @@
 package repositories
 
 import (
-	"errors"
-
 	"github.com/yogasab/go-monolith-ambassador/src/models"
 	"gorm.io/gorm"
 )
@@ -39,9 +37,9 @@ func (r *userRepository) FindByEmail(email string) (*models.User, error) {
 	if err := r.DB.Find(&user, "email = ?", email).Error; err != nil {
 		return nil, err
 	}
-	if user.ID == 0 {
-		return nil, errors.New("user is not registered")
-	}
+	// if user.ID == 0 {
+	// 	return nil, errors.New("user is not registered")
+	// }
 	return user, nil
 }
 
