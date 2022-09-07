@@ -21,6 +21,7 @@ func Setup(app *fiber.App) {
 	)
 	productController := controllers.NewProductController(
 		services.NewProductsService(repositories.NewProductRepository(database.DB)),
+		services.NewRedisService(repositories.NewRedisRepository(database.RedisClient)),
 	)
 	linkController := controllers.NewLinkController(
 		services.NewLinkService(repositories.NewLinkRepository(database.DB)),
@@ -58,4 +59,6 @@ func Setup(app *fiber.App) {
 	authenticatedAmbassador.Post("logout", authController.Logout)
 	authenticatedAmbassador.Put("profile/update", authController.UpdateProfile)
 	authenticatedAmbassador.Put("profile/password", authController.UpdateProfilePassword)
+	authenticatedAmbassador.Get("products/frontend", productController.GetProductsFrontend)
+
 }

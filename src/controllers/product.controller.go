@@ -1,20 +1,26 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/yogasab/go-monolith-ambassador/src/models"
 	"github.com/yogasab/go-monolith-ambassador/src/models/dto"
 	"github.com/yogasab/go-monolith-ambassador/src/services"
 )
 
 type productController struct {
 	productService services.ProductService
+	redisService   services.RedisService
 }
 
-func NewProductController(productService services.ProductService) *productController {
-	return &productController{productService: productService}
+func NewProductController(
+	productService services.ProductService,
+	redisService services.RedisService,
+) *productController {
+	return &productController{productService: productService, redisService: redisService}
 }
 
 func (h *productController) GetProducts(ctx *fiber.Ctx) error {
@@ -169,4 +175,51 @@ func (h *productController) CreateProduct(ctx *fiber.Ctx) error {
 			"message": "product updated successfully",
 			"data":    newProduct,
 		})
+}
+
+func (h *productController) GetProductsFrontend(ctx *fiber.Ctx) error {
+	var products []*models.Product
+	redisKey := "products_frontend"
+	redisCtx := ctx.Context()
+
+	results, errRedis := h.redisService.GetValue(redisCtx, redisKey)
+	if errRedis != nil || results == "" {
+		products, err := h.productService.GetProducts()
+		if err != nil {
+			return ctx.
+				Status(http.StatusInternalServerError).
+				JSON(fiber.Map{
+					"code":    http.StatusInternalServerError,
+					"message": "internal server errors",
+					"error":   err.Error(),
+				})
+		}
+
+		bytes, err := json.Marshal(products)
+		_, errRedis = h.redisService.SetValue(redisCtx, redisKey, bytes)
+		if errRedis != nil {
+			return ctx.
+				Status(http.StatusInternalServerError).
+				JSON(fiber.Map{
+					"code":    http.StatusInternalServerError,
+					"message": "failed to set from redis",
+					"error":   err.Error(),
+				})
+		}
+
+		return ctx.
+			Status(http.StatusOK).
+			JSON(fiber.Map{
+				"code":    http.StatusOK,
+				"message": "product fetched successfully",
+				"data":    products,
+			})
+	}
+
+	json.Unmarshal([]byte(results), &products)
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"code":    http.StatusOK,
+		"message": "product from redis fetched successfully",
+		"data":    products,
+	})
 }
