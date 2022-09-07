@@ -291,9 +291,31 @@ func (h *productController) GetProductsBackend(ctx *fiber.Ctx) error {
 		}
 	}
 
+	// pagination
+	var total int = len(searchedProducts)
+	page, _ := strconv.Atoi(ctx.Query("page", "1"))
+	perPage := 9
+
+	var data []*models.Product
+	if total <= page*perPage && total >= (page-1)*perPage {
+		// if it reaches last page
+		data = searchedProducts[(page-1)*perPage : total]
+	} else if total >= page*perPage {
+		// as long as the total is greater than page * perPage
+		data = searchedProducts[(page-1)*perPage : page*perPage]
+	} else {
+		// if perpage is greater than anything
+		data = []*models.Product{}
+	}
+
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"code":    http.StatusOK,
 		"message": "product from redis fetched successfully",
-		"data":    searchedProducts,
+		"data": fiber.Map{
+			"data":      data,
+			"total":     total,
+			"page":      page,
+			"last_page": total/perPage + 1,
+		},
 	})
 }
