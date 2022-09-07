@@ -60,5 +60,6 @@ func Setup(app *fiber.App) {
 	authenticatedAmbassador.Put("profile/update", authController.UpdateProfile)
 	authenticatedAmbassador.Put("profile/password", authController.UpdateProfilePassword)
 	authenticatedAmbassador.Get("products/frontend", productController.GetProductsFrontend)
+	authenticatedAmbassador.Get("products/backend", productController.GetProductsBackend)
 
 }

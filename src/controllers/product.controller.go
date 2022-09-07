@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/yogasab/go-monolith-ambassador/src/models"
@@ -217,6 +218,67 @@ func (h *productController) GetProductsFrontend(ctx *fiber.Ctx) error {
 	}
 
 	json.Unmarshal([]byte(results), &products)
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{
+		"code":    http.StatusOK,
+		"message": "product from redis fetched successfully",
+		"data":    products,
+	})
+}
+
+func (h *productController) GetProductsBackend(ctx *fiber.Ctx) error {
+	var products []*models.Product
+	redisKey := "products_backend"
+	redisCtx := ctx.Context()
+
+	results, errRedis := h.redisService.GetValue(redisCtx, redisKey)
+	if errRedis != nil || results == "" {
+		products, err := h.productService.GetProducts()
+		if err != nil {
+			return ctx.
+				Status(http.StatusInternalServerError).
+				JSON(fiber.Map{
+					"code":    http.StatusInternalServerError,
+					"message": "internal server errors",
+					"error":   err.Error(),
+				})
+		}
+		bytes, _ := json.Marshal(products)
+		_, errRedis := h.redisService.SetValue(redisCtx, redisKey, bytes)
+		if errRedis != nil {
+			return ctx.
+				Status(http.StatusInternalServerError).
+				JSON(fiber.Map{
+					"code":    http.StatusInternalServerError,
+					"message": "failed to set from redis",
+					"error":   err.Error(),
+				})
+		}
+		return ctx.
+			Status(http.StatusOK).
+			JSON(fiber.Map{
+				"code":    http.StatusOK,
+				"message": "product fetched successfully",
+				"data":    products,
+			})
+	}
+
+	json.Unmarshal([]byte(results), &products)
+	// if s query params is not empty string
+	if s := ctx.Query("s"); s != "" {
+		var searchedProducts []*models.Product
+		loweredCaseS := strings.ToLower(s)
+		for _, product := range products {
+			if strings.Contains(strings.ToLower(product.Title), loweredCaseS) || strings.Contains(strings.ToLower(product.Description), loweredCaseS) {
+				searchedProducts = append(searchedProducts, product)
+			}
+		}
+		return ctx.Status(http.StatusOK).JSON(fiber.Map{
+			"code":    http.StatusOK,
+			"message": "searched product fetched successfully",
+			"data":    searchedProducts,
+		})
+	}
+
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"code":    http.StatusOK,
 		"message": "product from redis fetched successfully",
