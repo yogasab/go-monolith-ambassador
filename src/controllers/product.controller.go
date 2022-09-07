@@ -1,15 +1,12 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 	"github.com/yogasab/go-monolith-ambassador/src/database"
 	"github.com/yogasab/go-monolith-ambassador/src/models"
@@ -28,6 +25,10 @@ func NewProductController(
 ) *productController {
 	return &productController{productService: productService, redisService: redisService}
 }
+
+var (
+	keys []string = []string{"products_frontend", "products_backend"}
+)
 
 func (h *productController) GetProducts(ctx *fiber.Ctx) error {
 	products, err := h.productService.GetProducts()
@@ -106,16 +107,16 @@ func (h *productController) UpdateProduct(ctx *fiber.Ctx) error {
 	}
 
 	// delete all the value from redis
-	var keys []string = []string{"products_frontend", "products_backend"}
+	go database.ClearCache(keys...)
 	// go routines with named function
 	// go deleteCache(ctx.Context(), keys, database.RedisClient)
 	// go routines with anonynouse function
-	go func(ctx context.Context, keys []string, redisClient *redis.Client) {
-		time.Sleep(5 * time.Second)
-		for _, key := range keys {
-			redisClient.Del(ctx, key).Err()
-		}
-	}(ctx.Context(), keys, database.RedisClient)
+	// go func(ctx context.Context, keys []string, redisClient *redis.Client) {
+	// 	time.Sleep(5 * time.Second)
+	// 	for _, key := range keys {
+	// 		redisClient.Del(ctx, key).Err()
+	// 	}
+	// }(ctx.Context(), keys, database.RedisClient)
 
 	return ctx.
 		Status(http.StatusOK).
@@ -126,12 +127,12 @@ func (h *productController) UpdateProduct(ctx *fiber.Ctx) error {
 		})
 }
 
-func deleteCache(ctx context.Context, keys []string, redisClient *redis.Client) {
-	time.Sleep(5 * time.Second)
-	for _, key := range keys {
-		redisClient.Del(ctx, key).Err()
-	}
-}
+// func deleteCache(ctx context.Context, keys []string, redisClient *redis.Client) {
+// 	time.Sleep(5 * time.Second)
+// 	for _, key := range keys {
+// 		redisClient.Del(ctx, key).Err()
+// 	}
+// }
 
 func (h *productController) DeleteProduct(ctx *fiber.Ctx) error {
 	ID, _ := strconv.Atoi(ctx.Params("id"))
@@ -153,6 +154,9 @@ func (h *productController) DeleteProduct(ctx *fiber.Ctx) error {
 				"error":   err.Error(),
 			})
 	}
+
+	// delete all the value from redis
+	go database.ClearCache(keys...)
 
 	return ctx.
 		Status(http.StatusOK).
@@ -192,6 +196,9 @@ func (h *productController) CreateProduct(ctx *fiber.Ctx) error {
 				"error":   err.Error(),
 			})
 	}
+
+	// delete all the value from redis
+	go database.ClearCache(keys...)
 
 	return ctx.
 		Status(http.StatusOK).
