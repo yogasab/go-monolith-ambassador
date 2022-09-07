@@ -9,6 +9,7 @@ import (
 
 type LinkRepository interface {
 	FindAllUser(UserID int) ([]*models.Link, error)
+	Create(link *models.Link) (*models.Link, error)
 }
 
 type linkRepository struct {
@@ -28,4 +29,11 @@ func (r *linkRepository) FindAllUser(UserID int) ([]*models.Link, error) {
 		return nil, errors.New("user links is not found")
 	}
 	return links, nil
+}
+
+func (r *linkRepository) Create(link *models.Link) (*models.Link, error) {
+	if err := r.DB.Create(&link).Error; err != nil {
+		return nil, err
+	}
+	return link, nil
 }

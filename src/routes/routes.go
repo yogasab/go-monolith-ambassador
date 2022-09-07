@@ -57,6 +57,7 @@ func Setup(app *fiber.App) {
 	authenticatedAmbassador := ambassador.Use(middlewares.IsAuthenticated)
 	authenticatedAmbassador.Get("profile", authController.Profile)
 	authenticatedAmbassador.Post("logout", authController.Logout)
+	authenticatedAmbassador.Post("links", linkController.CreateLink)
 	authenticatedAmbassador.Put("profile/update", authController.UpdateProfile)
 	authenticatedAmbassador.Put("profile/password", authController.UpdateProfilePassword)
 	authenticatedAmbassador.Get("products/frontend", productController.GetProductsFrontend)
