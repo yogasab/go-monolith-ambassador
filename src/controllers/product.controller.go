@@ -1,13 +1,17 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
+	"github.com/yogasab/go-monolith-ambassador/src/database"
 	"github.com/yogasab/go-monolith-ambassador/src/models"
 	"github.com/yogasab/go-monolith-ambassador/src/models/dto"
 	"github.com/yogasab/go-monolith-ambassador/src/services"
@@ -101,6 +105,18 @@ func (h *productController) UpdateProduct(ctx *fiber.Ctx) error {
 			})
 	}
 
+	// delete all the value from redis
+	var keys []string = []string{"products_frontend", "products_backend"}
+	// go routines with named function
+	// go deleteCache(ctx.Context(), keys, database.RedisClient)
+	// go routines with anonynouse function
+	go func(ctx context.Context, keys []string, redisClient *redis.Client) {
+		time.Sleep(5 * time.Second)
+		for _, key := range keys {
+			redisClient.Del(ctx, key).Err()
+		}
+	}(ctx.Context(), keys, database.RedisClient)
+
 	return ctx.
 		Status(http.StatusOK).
 		JSON(fiber.Map{
@@ -108,6 +124,13 @@ func (h *productController) UpdateProduct(ctx *fiber.Ctx) error {
 			"message": "product updated successfully",
 			"data":    updatedProduct,
 		})
+}
+
+func deleteCache(ctx context.Context, keys []string, redisClient *redis.Client) {
+	time.Sleep(5 * time.Second)
+	for _, key := range keys {
+		redisClient.Del(ctx, key).Err()
+	}
 }
 
 func (h *productController) DeleteProduct(ctx *fiber.Ctx) error {

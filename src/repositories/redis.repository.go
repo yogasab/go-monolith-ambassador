@@ -10,6 +10,7 @@ import (
 type RedisRepository interface {
 	GetValue(ctx context.Context, key string) (string, error)
 	SetValue(ctx context.Context, key string, value interface{}) error
+	DeleteValue(ctx context.Context, keys []string) (bool, error)
 }
 
 type redisRepository struct {
@@ -33,4 +34,13 @@ func (r *redisRepository) SetValue(ctx context.Context, key string, value interf
 		return err
 	}
 	return nil
+}
+
+func (r *redisRepository) DeleteValue(ctx context.Context, keys []string) (bool, error) {
+	for _, key := range keys {
+		if err := r.rdb.Del(ctx, key).Err(); err != nil {
+			return false, err
+		}
+	}
+	return true, nil
 }

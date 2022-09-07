@@ -9,6 +9,7 @@ import (
 type RedisService interface {
 	GetValue(ctx context.Context, key string) (string, error)
 	SetValue(ctx context.Context, key string, value interface{}) (bool, error)
+	DeleteValue(ctx context.Context, keys []string) (bool, error)
 }
 
 type redisService struct {
@@ -32,4 +33,12 @@ func (s *redisService) SetValue(ctx context.Context, key string, value interface
 		return false, err
 	}
 	return true, nil
+}
+
+func (s *redisService) DeleteValue(ctx context.Context, keys []string) (bool, error) {
+	isDeleted, err := s.redisRepository.DeleteValue(ctx, keys)
+	if err != nil {
+		return isDeleted, err
+	}
+	return isDeleted, nil
 }
