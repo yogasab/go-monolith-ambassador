@@ -9,6 +9,7 @@ type OrderRepository interface {
 	FindAll() ([]*models.Order, error)
 	CalculateAmbassadorRevenue(ambassadorID int) (float64, error)
 	FindUserOrders(link *models.Link) ([]*models.Order, error)
+	Create(order *models.Order) (*models.Order, error)
 }
 
 type orderRepository struct {
@@ -55,4 +56,11 @@ func (r *orderRepository) FindUserOrders(link *models.Link) ([]*models.Order, er
 		return nil, err
 	}
 	return orders, nil
+}
+
+func (r *orderRepository) Create(order *models.Order) (*models.Order, error) {
+	if err := r.DB.Create(&order).Error; err != nil {
+		return nil, err
+	}
+	return order, nil
 }

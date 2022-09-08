@@ -14,9 +14,13 @@ func Setup(app *fiber.App) {
 	authController := controllers.NewAuthController(
 		services.NewAuthService(repositories.NewUserRepository(database.DB)),
 		services.NewJWTService(),
-		services.NewOrderService(repositories.NewOrderRepository(database.DB),
-			repositories.NewUserRepository(database.DB)),
-	)
+		services.NewOrderService(
+			repositories.NewOrderRepository(database.DB),
+			repositories.NewUserRepository(database.DB),
+			repositories.NewLinkRepository(database.DB),
+			repositories.NewProductRepository(database.DB),
+			repositories.NewOrderItemRepository(database.DB),
+		))
 	ambassadorController := controllers.NewAmbassadorController(
 		services.NewAmbassadorService(repositories.NewUserRepository(database.DB)),
 	)
@@ -31,9 +35,13 @@ func Setup(app *fiber.App) {
 		),
 	)
 	orderController := controllers.NewrOrderController(
-		services.NewOrderService(repositories.NewOrderRepository(database.DB),
-			repositories.NewUserRepository(database.DB)),
-	)
+		services.NewOrderService(
+			repositories.NewOrderRepository(database.DB),
+			repositories.NewUserRepository(database.DB),
+			repositories.NewLinkRepository(database.DB),
+			repositories.NewProductRepository(database.DB),
+			repositories.NewOrderItemRepository(database.DB),
+		))
 
 	api := app.Group("/api")
 
@@ -73,5 +81,6 @@ func Setup(app *fiber.App) {
 	checkout := api.Group("/checkouts")
 
 	// authenticatedLink := link.Use(middlewares.IsAuthenticated)
+	checkout.Post("orders", orderController.CreateOrder)
 	checkout.Get("links/:code", linkController.GetLinkCodeDetails)
 }

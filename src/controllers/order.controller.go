@@ -89,3 +89,44 @@ func (h *orderController) GetOrdersRankings(ctx *fiber.Ctx) error {
 			"data":    formatters,
 		})
 }
+
+func (h *orderController) CreateOrder(ctx *fiber.Ctx) error {
+	dto := new(dto.CreateOrderDTO)
+	if err := ctx.BodyParser(dto); err != nil {
+		return ctx.
+			Status(http.StatusUnprocessableEntity).
+			JSON(fiber.Map{
+				"code":    http.StatusUnprocessableEntity,
+				"message": "failed to process request",
+				"error":   err,
+			})
+	}
+
+	if errors := ValidateInput(*dto); errors != nil {
+		return ctx.
+			Status(http.StatusUnprocessableEntity).
+			JSON(fiber.Map{
+				"code":    http.StatusUnprocessableEntity,
+				"message": "error validation request",
+				"error":   errors,
+			})
+	}
+
+	newOrder, err := h.orderService.CreateOrder(dto)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server errors",
+				"error":   err.Error(),
+			})
+	}
+
+	return ctx.
+		Status(http.StatusCreated).
+		JSON(fiber.Map{
+			"code":    http.StatusCreated,
+			"message": "order created successfully",
+			"data":    newOrder,
+		})
+}
