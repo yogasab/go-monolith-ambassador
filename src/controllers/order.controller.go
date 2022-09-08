@@ -1,9 +1,13 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
+	"sort"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/yogasab/go-monolith-ambassador/src/models/dto"
 	"github.com/yogasab/go-monolith-ambassador/src/services"
 )
 
@@ -37,5 +41,51 @@ func (h *orderController) GetOrders(ctx *fiber.Ctx) error {
 			"code":    http.StatusOK,
 			"message": "orders fetched successfully",
 			"data":    orders,
+		})
+}
+
+func (h *orderController) GetOrdersRankings(ctx *fiber.Ctx) error {
+	var formatters []dto.OrderRankingDTO
+	results, err := h.orderService.GetOrdersRankings()
+
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server errors",
+				"error":   err.Error(),
+			})
+	}
+
+	bytes, _ := json.Marshal(results)
+
+	if err := json.Unmarshal(bytes, &formatters); err != nil {
+		return ctx.Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server errors",
+				"error":   err.Error(),
+			})
+	}
+
+	if rankingParam := ctx.Query("rank"); rankingParam != "" {
+		loweredParam := strings.ToLower(rankingParam)
+		if loweredParam == "lowest" {
+			sort.Slice(formatters, func(i, j int) bool {
+				return formatters[i].Revenue < formatters[j].Revenue
+			})
+		} else {
+			sort.Slice(formatters, func(i, j int) bool {
+				return formatters[i].Revenue > formatters[j].Revenue
+			})
+		}
+	}
+
+	return ctx.
+		Status(http.StatusOK).
+		JSON(fiber.Map{
+			"code":    http.StatusOK,
+			"message": "order rankings fetched successfully",
+			"data":    formatters,
 		})
 }

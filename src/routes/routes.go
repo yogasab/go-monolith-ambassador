@@ -14,7 +14,8 @@ func Setup(app *fiber.App) {
 	authController := controllers.NewAuthController(
 		services.NewAuthService(repositories.NewUserRepository(database.DB)),
 		services.NewJWTService(),
-		services.NewOrderService(repositories.NewOrderRepository(database.DB)),
+		services.NewOrderService(repositories.NewOrderRepository(database.DB),
+			repositories.NewUserRepository(database.DB)),
 	)
 	ambassadorController := controllers.NewAmbassadorController(
 		services.NewAmbassadorService(repositories.NewUserRepository(database.DB)),
@@ -30,7 +31,8 @@ func Setup(app *fiber.App) {
 		),
 	)
 	orderController := controllers.NewrOrderController(
-		services.NewOrderService(repositories.NewOrderRepository(database.DB)),
+		services.NewOrderService(repositories.NewOrderRepository(database.DB),
+			repositories.NewUserRepository(database.DB)),
 	)
 
 	api := app.Group("/api")
@@ -66,4 +68,5 @@ func Setup(app *fiber.App) {
 	authenticatedAmbassador.Put("profile/password", authController.UpdateProfilePassword)
 	authenticatedAmbassador.Get("products/frontend", productController.GetProductsFrontend)
 	authenticatedAmbassador.Get("products/backend", productController.GetProductsBackend)
+	authenticatedAmbassador.Get("orders/rankings", orderController.GetOrdersRankings)
 }
