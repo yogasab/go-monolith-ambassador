@@ -10,6 +10,7 @@ import (
 type LinkRepository interface {
 	FindAllUser(UserID int) ([]*models.Link, error)
 	Create(link *models.Link) (*models.Link, error)
+	FindByUserID(UserID int) ([]*models.Link, error)
 }
 
 type linkRepository struct {
@@ -36,4 +37,15 @@ func (r *linkRepository) Create(link *models.Link) (*models.Link, error) {
 		return nil, err
 	}
 	return link, nil
+}
+
+func (r *linkRepository) FindByUserID(UserID int) ([]*models.Link, error) {
+	var links []*models.Link
+	if err := r.DB.Find(&links, models.Link{UserID: uint(UserID)}).Error; err != nil {
+		return nil, err
+	}
+	if len(links) == 0 {
+		return nil, errors.New("links to user is not found")
+	}
+	return links, nil
 }

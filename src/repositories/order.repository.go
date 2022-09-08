@@ -8,6 +8,7 @@ import (
 type OrderRepository interface {
 	FindAll() ([]*models.Order, error)
 	CalculateAmbassadorRevenue(ambassadorID int) (float64, error)
+	FindUserOrders(link *models.Link) ([]*models.Order, error)
 }
 
 type orderRepository struct {
@@ -43,4 +44,15 @@ func (r *orderRepository) CalculateAmbassadorRevenue(ambassadorID int) (float64,
 	}
 
 	return ambassadorRevenue, nil
+}
+
+func (r *orderRepository) FindUserOrders(link *models.Link) ([]*models.Order, error) {
+	var orders []*models.Order
+	if err := r.DB.Preload("OrderItems").Find(&orders, &models.Order{
+		Code:     link.Code,
+		Complete: true,
+	}).Error; err != nil {
+		return nil, err
+	}
+	return orders, nil
 }

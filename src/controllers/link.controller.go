@@ -90,3 +90,34 @@ func (h *linkController) CreateLink(ctx *fiber.Ctx) error {
 			"data":    newLink,
 		})
 }
+
+func (h *linkController) GetUserLinkStats(ctx *fiber.Ctx) error {
+	ID, _ := middlewares.GetUserID(ctx)
+	results, err := h.linkService.GetUserLinkStats(ID)
+	if err != nil {
+		if err.Error() == "links to user is not found" {
+			return ctx.
+				Status(http.StatusNotFound).
+				JSON(fiber.Map{
+					"code":    http.StatusNotFound,
+					"message": "not found",
+					"error":   err.Error(),
+				})
+		}
+		return ctx.
+			Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server error",
+				"error":   err,
+			})
+	}
+
+	return ctx.
+		Status(http.StatusOK).
+		JSON(fiber.Map{
+			"code":    http.StatusOK,
+			"message": "user links stats fetched successfully",
+			"data":    results,
+		})
+}

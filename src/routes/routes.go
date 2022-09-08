@@ -24,7 +24,10 @@ func Setup(app *fiber.App) {
 		services.NewRedisService(repositories.NewRedisRepository(database.RedisClient)),
 	)
 	linkController := controllers.NewLinkController(
-		services.NewLinkService(repositories.NewLinkRepository(database.DB)),
+		services.NewLinkService(
+			repositories.NewLinkRepository(database.DB),
+			repositories.NewOrderRepository(database.DB),
+		),
 	)
 	orderController := controllers.NewrOrderController(
 		services.NewOrderService(repositories.NewOrderRepository(database.DB)),
@@ -58,9 +61,9 @@ func Setup(app *fiber.App) {
 	authenticatedAmbassador.Get("profile", authController.Profile)
 	authenticatedAmbassador.Post("logout", authController.Logout)
 	authenticatedAmbassador.Post("links", linkController.CreateLink)
+	authenticatedAmbassador.Get("links/stats", linkController.GetUserLinkStats)
 	authenticatedAmbassador.Put("profile/update", authController.UpdateProfile)
 	authenticatedAmbassador.Put("profile/password", authController.UpdateProfilePassword)
 	authenticatedAmbassador.Get("products/frontend", productController.GetProductsFrontend)
 	authenticatedAmbassador.Get("products/backend", productController.GetProductsBackend)
-
 }
