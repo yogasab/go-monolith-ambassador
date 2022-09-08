@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"log"
 
 	"github.com/bxcodec/faker/v3"
@@ -13,6 +14,7 @@ type LinkService interface {
 	GetUserLinks(UserID int) ([]*models.Link, error)
 	CreateLink(dto *dto.CreateLinkDTO) (*models.Link, error)
 	GetUserLinkStats(UserID int) ([]interface{}, error)
+	GetLinkCodeDetails(code string, UserID int) (*models.Link, error)
 }
 
 type linkService struct {
@@ -76,4 +78,15 @@ func (s *linkService) GetUserLinkStats(UserID int) ([]interface{}, error) {
 
 	}
 	return results, nil
+}
+
+func (s *linkService) GetLinkCodeDetails(code string, UserID int) (*models.Link, error) {
+	link, err := s.linkRepository.FindByCode(code)
+	if err != nil {
+		return nil, err
+	}
+	if link.UserID != uint(UserID) {
+		return nil, errors.New("you are prohibited to access this route")
+	}
+	return link, nil
 }

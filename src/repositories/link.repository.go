@@ -11,6 +11,7 @@ type LinkRepository interface {
 	FindAllUser(UserID int) ([]*models.Link, error)
 	Create(link *models.Link) (*models.Link, error)
 	FindByUserID(UserID int) ([]*models.Link, error)
+	FindByCode(code string) (*models.Link, error)
 }
 
 type linkRepository struct {
@@ -48,4 +49,16 @@ func (r *linkRepository) FindByUserID(UserID int) ([]*models.Link, error) {
 		return nil, errors.New("links to user is not found")
 	}
 	return links, nil
+}
+
+func (r *linkRepository) FindByCode(code string) (*models.Link, error) {
+	var link *models.Link
+	if err := r.DB.Preload("User").Preload("Products").Where("code = ?", code).First(&link).Error; err != nil {
+		if link.ID == 0 {
+			return nil, errors.New("link is not found")
+		}
+		return nil, err
+	}
+
+	return link, nil
 }

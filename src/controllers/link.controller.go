@@ -121,3 +121,35 @@ func (h *linkController) GetUserLinkStats(ctx *fiber.Ctx) error {
 			"data":    results,
 		})
 }
+
+func (h *linkController) GetLinkCodeDetails(ctx *fiber.Ctx) error {
+	code := ctx.Params("code")
+	ID, _ := middlewares.GetUserID(ctx)
+	link, err := h.linkService.GetLinkCodeDetails(code, ID)
+	if err != nil {
+		if err.Error() == "link is not found" {
+			return ctx.
+				Status(http.StatusNotFound).
+				JSON(fiber.Map{
+					"code":    http.StatusNotFound,
+					"message": "not found",
+					"error":   err.Error(),
+				})
+		}
+		return ctx.
+			Status(http.StatusInternalServerError).
+			JSON(fiber.Map{
+				"code":    http.StatusInternalServerError,
+				"message": "internal server error",
+				"error":   err.Error(),
+			})
+	}
+
+	return ctx.
+		Status(http.StatusOK).
+		JSON(fiber.Map{
+			"code":    http.StatusOK,
+			"message": "link details stats fetched successfully",
+			"data":    link,
+		})
+}

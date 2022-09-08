@@ -69,4 +69,9 @@ func Setup(app *fiber.App) {
 	authenticatedAmbassador.Get("products/frontend", productController.GetProductsFrontend)
 	authenticatedAmbassador.Get("products/backend", productController.GetProductsBackend)
 	authenticatedAmbassador.Get("orders/rankings", orderController.GetOrdersRankings)
+
+	checkout := api.Group("/checkouts")
+
+	// authenticatedLink := link.Use(middlewares.IsAuthenticated)
+	checkout.Get("links/:code", linkController.GetLinkCodeDetails)
 }
